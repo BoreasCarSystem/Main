@@ -55,6 +55,7 @@ There are two types of requests:
 * `set` - change the target temperature or turn the air condition on/off.
 * `status` - get the current target temperature and state of the air condition.
 Those are separated by using different URIs, namely set/ and status/. The JSON data is embedded as POST data.
+
 ### Response format ###
 
 #### Set ####

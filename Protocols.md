@@ -141,6 +141,14 @@ Each of those objects have two properties:
 * `type`: name of this message
 * `value`: this message's value
 
+#### Example ####
+```json
+[
+	{"type": "AC_enabled", "value": true},
+	{"type": "AC_temperature", "value": 22.5}
+]
+```
+
 #### Message types and their values ####
 
 | Type | Value | Explanation |

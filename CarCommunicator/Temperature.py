@@ -4,9 +4,9 @@ import json
 
 class Temperature:
 
-    def __init__(self, target_temp, time=None):
+    def __init__(self, car_control, target_temp, time=None):
         if time == None:
-            self.car_control = Car.CarControl()
+            self.car_control = car_control
             self.target_temp = float(target_temp)
             self.response = None
             self.activate()
@@ -32,4 +32,6 @@ class Temperature:
         else:
             # Do something with
 
-    def get_response(self):
+
+
+

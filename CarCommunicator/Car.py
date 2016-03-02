@@ -15,6 +15,6 @@ class CarControl():
         if type(di["enabled"]) == bool and (type(di["temperature"]) == float or di["temperature"] is None):
             self.AC_enabled = di["enabled"]
             self.AC_target_temperature = di["temperature"]
-            return "200 ok"
+            return True
         else:
-            return "Invalid data"
+            return False

@@ -1,10 +1,11 @@
 import unittest
 import Temperature
+import Car
 
 class CarControlAndTemperatureTester(unittest.TestCase):
 
     def setUp(self):
-        self.temp = Temperature.Temperature(20)
+        self.temp = Temperature.Temperature(Car.CarControl(), 20)
 
     def test_correct_target_temperature(self):
         self.assertEqual(self.temp.target_temp, 20)
@@ -15,7 +16,7 @@ class CarControlAndTemperatureTester(unittest.TestCase):
 
     def test_raises_type_exception_if_invalid_argument(self):
         with self.assertRaises(ValueError):
-            temp2 = Temperature.Temperature("bug")
+            temp2 = Temperature.Temperature(Car.CarControl(), "bug")
 
     def test_deactivate_works_properly(self):
         self.temp.deactivate()

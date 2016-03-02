@@ -23,8 +23,5 @@ class CarControlAndTemperatureTester(unittest.TestCase):
         self.assertEqual(self.temp.car_control.AC_target_temperature, None)
         self.assertFalse(self.temp.car_control.AC_target_temperature)
 
-
-
-
 if __name__ == "__main__":
     unittest.main()

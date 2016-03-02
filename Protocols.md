@@ -129,6 +129,7 @@ Consist of one object, with the following properties:
 | 4 | Error inside CarCommunicator |
 | 5 | Wrong format/error relating to CarDataStream |
 | 6 | The car battery level is too low for the AC to be turned on |
+| 7 | The car battery level has dropped to a critical limit |
 
 
 ### Response format ###

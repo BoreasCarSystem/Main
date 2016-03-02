@@ -10,27 +10,28 @@ class Temperature:
             self.target_temp = float(target_temp)
             self.response = None
             self.activate()
-            self.send_response()
 
     def activate(self):
         # Tells CarControl to activate the AC to the given target_temp.
         # Format to be sent:
         # { "enable": true, "temperature": target_temp }
 
-        dict = {"enabled": True, "temperature": self.target_temp}
-        data = json.dumps(dict)
+        di = {"enabled": True, "temperature": self.target_temp}
+        data = json.dumps(di)
         self.response = self.car_control.set_AC(data)
 
+    def deactivate(self):
+        # Tells CarControl to deactivate AC
+        # Can be called from batteryListener or main
+        # An error message (code 6 or 7) should be sent from BatteryListener to Main if BatteryListener calls
+        # deactivate.
+        # An ok-message should be sent from main to web server if main is the source (then it is likely that the user
+        # has canceled the AC). This can be sent via the CarControl-class.
 
-    def deactivate(self, error_no=None):
-        dict = {"enabled": False, "temperature": None}
-        data = json.dumps(dict)
+        di = {"enabled": False, "temperature": None}
+        data = json.dumps(di)
         self.response = self.car_control.set_AC(data)
 
-        if error_no is None:
-            # If the web server has canceled the AC.
-        else:
-            # Do something with
 
 
 

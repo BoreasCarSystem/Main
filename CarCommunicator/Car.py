@@ -11,7 +11,7 @@ class CarControl():
 
     def set_AC(self, data):
         di = json.loads(data)
-
+        print(di)
         if type(di["enabled"]) == bool and (type(di["temperature"]) == float or di["temperature"] is None):
             self.AC_enabled = di["enabled"]
             self.AC_target_temperature = di["temperature"]

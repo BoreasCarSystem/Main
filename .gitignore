@@ -76,3 +76,12 @@ target/
 # dotenv
 .env
 
+# venv
+venv/
+
+### pycharm
+.idea/
+
+### OSX
+/.DS_Store
+/*/.DS_Store

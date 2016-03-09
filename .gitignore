@@ -76,3 +76,8 @@ target/
 # dotenv
 .env
 
+# venv
+venv/
+
+### pycharm
+.idea/

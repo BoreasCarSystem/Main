@@ -52,13 +52,13 @@ class ThreadedDataGenerator(DataGenerator):
         self.thread = None
 
     def start(self):
-        if not self.thread.is_alive():
+        if (self.thread and not self.thread.is_alive()) or not self.thread:
             self.should_stop = False
             self.is_started = True
             self.thread = Thread(target=self.generate)
             self.thread.start()
         return self
-    
+
 
 class MergeManyGenerator(DataGenerator):
 
@@ -110,5 +110,6 @@ class PrintValueAndSourceObserver(DataObserver):
 
     def on_next(self, source, value):
         print(source + ": " + str(value))
+
 
 

@@ -1,4 +1,4 @@
-from CarDataStream.DataGenerators import *
+from DataGenerators import *
 from time import sleep,time
 import json
 
@@ -69,6 +69,3 @@ class JsonDataGenerator(ThreadedDataGenerator):
 
             return json_list
 
-generator = Battery("Battery", charge_rate=-1)
-generator.subscribe(observer=PrintValueAndSourceObserver())
-generator.start()

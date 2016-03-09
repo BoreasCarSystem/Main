@@ -19,9 +19,10 @@ class DataGenerator(object):
 
     def stop(self):
         self.should_stop = True
+        self.is_started = False
 
     def generate(self):
-        pass
+        return
 
     def subscribe(self, observer=None, on_next=None):
 
@@ -51,42 +52,49 @@ class ThreadedDataGenerator(DataGenerator):
         self.thread = None
 
     def start(self):
-        self.should_stop = False
-        self.is_started = True
-        self.thread = Thread(target=self.generate)
-        self.thread.start()
+        if not self.thread.is_alive():
+            self.should_stop = False
+            self.is_started = True
+            self.thread = Thread(target=self.generate)
+            self.thread.start()
         return self
+    
 
-    def merge(self, other_generator):
-        return MergedGenerator(self, other_generator)
+class MergeManyGenerator(DataGenerator):
 
-# Generator that consists of two other generators. Sub-generators should be of type ThreadedDataGenerator.
-class MergedGenerator(DataGenerator):
+    def __init__(self, generators):
+        super(MergeManyGenerator, self).__init__("Mergeparty")
+        self.generators = list()
+        for generator in generators:
+            if isinstance(generator, ThreadedDataGenerator):
+                self.generators.append(generator)
+                generator.subscribe(on_next=self.merge_generate)
+            else:
+                raise Exception("Cant merge non-threaded generators!")
 
-    def __init__(self, generator1, generator2):
-        super(MergedGenerator, self).__init__("Merged")
-        print("Merging generators...")
-        if isinstance(generator1, ThreadedDataGenerator) and isinstance(generator2, ThreadedDataGenerator):
-            self.generator1 = generator1
-            self.generator2 = generator2
-            self.generator1.subscribe(on_next=self.merge_generate)
-            self.generator2.subscribe(on_next=self.merge_generate)
-        else:
-            raise Exception("Cant merge non-threaded generators!")
+    def add_generator(self, generator):
+        if isinstance(generator, DataGenerator):
+            self.generators.append(generator)
+            generator.subscribe(on_next=self.merge_generate)
+            generator.start()
 
     def start(self):
         self.should_stop = False
         self.is_started = True
-        self.generator1.start()
-        self.generator2.start()
-
+        for generator in self.generators:
+            generator.start()
 
     def stop(self):
-        self.generator1.should_stop = True
-        self.generator2.should_stop = True
+        self.should_stop = True
+        self.is_started = False
+        for generator in self.generators:
+            generator.stop()
 
     def merge_generate(self, source, value):
         self.send(source, value)
+
+
+
 
 
 

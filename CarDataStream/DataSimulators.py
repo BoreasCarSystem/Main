@@ -59,7 +59,7 @@ class JsonDataGenerator(ThreadedDataGenerator):
         print("All data consumed!")
         return
 
-    def read_json_from_file(filename):
+    def read_json_from_file(self, filename):
         with open(filename) as data:
 
             json_list = list()

@@ -1,3 +1,10 @@
+import http.server
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import socketserver
+
+HOST = "localhost"
+PORT = 34444
+
 class Status:
     """ We need to create a connection between this class and the CarDataStream.
     This class SHOULD listen at port 34444, where CarDataStream MUST send its data.
@@ -10,6 +17,9 @@ class Status:
         self.all_listeners = set()
         self.battery_level = None
         self.temp = None
+
+        #Setts server to class, should listen for HTML requests
+        self.server = Server()
 
     def get_battery_level(self):
         """
@@ -29,3 +39,26 @@ class Status:
 
     def remove_listener(self, listener):
         self.all_listeners.remove(listener)
+
+
+"""Sets up server, made from tutorial, have issues
+Cant get access to server"""
+class Server:
+    def __init__(self):
+        def handler(*args):
+            Handler(None,*args)
+        httpd = HTTPServer((HOST,PORT), handler)
+        httpd.serve_forever()
+
+#Request Handler
+class Handler(BaseHTTPRequestHandler):
+    def __init__(self, t1, *args):
+        self.t1 = t1
+        BaseHTTPRequestHandler.__init__(self, *args)
+
+    def do_GET(self):
+        print(self.rfile.read(10))
+"""
+if __name__ == "__main__":
+    server = Server()
+"""

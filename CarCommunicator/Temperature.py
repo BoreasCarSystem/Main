@@ -5,7 +5,7 @@ import json
 class Temperature:
 
     def __init__(self, car_control, target_temp, time=None):
-        if time == None:
+        if time is None:
             self.car_control = car_control
             self.target_temp = float(target_temp)
             self.response = None
@@ -31,6 +31,10 @@ class Temperature:
         di = {"enabled": False, "temperature": None}
         data = json.dumps(di)
         self.response = self.car_control.set_AC(data)
+
+    def update_temperature(self, target_temp):
+        self.target_temp = target_temp
+        self.activate()
 
 
 

@@ -6,9 +6,9 @@ class Battery(ThreadedDataGenerator):
 
     CHARGE_RATE_IDLE = -0.00001
     CHARGE_RATE_DRIVING = 0.0001
-    CHARGE_RATE_IDLE_BUT_POWER_USE = -0.0001
+    CHARGE_RATE_IDLE_BUT_POWER_USE = -0.01
 
-    def __init__(self, name, level=100, charge_rate=CHARGE_RATE_IDLE):
+    def __init__(self, name, level=100, charge_rate=CHARGE_RATE_IDLE_BUT_POWER_USE):
         super(Battery, self).__init__(name)
         self.level = level
         self.max_level = 100
@@ -31,16 +31,7 @@ class Battery(ThreadedDataGenerator):
                 return
 
 
-def read_json_from_file(filename):
 
-    with open(filename) as data:
-
-        json_list = list()
-        for line in data:
-            json_line = json.loads(line)
-            json_list.append(json_line)
-
-        return json_list
 
 
 class JsonDataGenerator(ThreadedDataGenerator):
@@ -48,7 +39,7 @@ class JsonDataGenerator(ThreadedDataGenerator):
     def __init__(self, name, filename):
         super(JsonDataGenerator, self).__init__(name)
         self.filename = filename
-        self.data_list = read_json_from_file(filename)
+        self.data_list = self.read_json_from_file(filename)
         self.sent_items_last_timestamp = dict()
 
     def generate(self):
@@ -67,6 +58,16 @@ class JsonDataGenerator(ThreadedDataGenerator):
                 return
         print("All data consumed!")
         return
+
+    def read_json_from_file(filename):
+        with open(filename) as data:
+
+            json_list = list()
+            for line in data:
+                json_line = json.loads(line)
+                json_list.append(json_line)
+
+            return json_list
 
 generator = Battery("Battery", charge_rate=-1)
 generator.subscribe(observer=PrintValueAndSourceObserver())

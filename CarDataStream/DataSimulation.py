@@ -40,8 +40,10 @@ class DataGenerator(object):
         for on_next in self.on_nexts:
             on_next(source, value)
 
-
-# Threaded version of the DataGenerator. Will run the generate() method on a seperate thread, not blocking the main program.
+"""
+Threaded version of the DataGenerator. Will run the generate() method on a seperate thread, not blocking the main program.
+The generate method needs to call return if the should_stop variable is True.
+"""
 class ThreadedDataGenerator(DataGenerator):
 
     def __init__(self, name):

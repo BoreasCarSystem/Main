@@ -19,7 +19,7 @@ class Status:
         self.temp = None
 
         #Setts server to class, should listen for HTML requests
-        self.server = Server()
+        self.server = Server(self)
 
     def get_battery_level(self):
         """
@@ -41,24 +41,24 @@ class Status:
         self.all_listeners.remove(listener)
 
 
-"""Sets up server, made from tutorial, have issues
-Cant get access to server"""
+"""Sets up server, must add handle methods in handler class to handle requests
+"""
 class Server:
-    def __init__(self):
+    def __init__(self, status):
         def handler(*args):
-            Handler(None,*args)
+            Handler(status,*args)
         httpd = HTTPServer((HOST,PORT), handler)
         httpd.serve_forever()
 
 #Request Handler
 class Handler(BaseHTTPRequestHandler):
-    def __init__(self, t1, *args):
-        self.t1 = t1
+    def __init__(self, status, *args):
+        self.status = status
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_GET(self):
-        print(self.rfile.read(10))
-"""
+        print(self.status.get_battery_level())
+'''
 if __name__ == "__main__":
-    server = Server()
-"""
+    s = Status()
+'''

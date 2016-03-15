@@ -1,15 +1,22 @@
 import Car
 import json
+from threading import Thread
+from time import sleep
 
 
 class Temperature:
 
     def __init__(self, car_control, target_temp, time=None):
+        self.car_control = car_control
+        self.target_temp = float(target_temp)
+        self.response = None
         if time is None:
-            self.car_control = car_control
-            self.target_temp = float(target_temp)
-            self.response = None
             self.activate()
+        else:
+            # TODO: Make sure time is converted to seconds at some point
+            timer = TemperatureTimer(time, self)
+            timer.start()
+
 
     def activate(self):
         # Tells CarControl to activate the AC to the given target_temp.
@@ -37,4 +44,12 @@ class Temperature:
         self.activate()
 
 
+class TemperatureTimer(Thread):
+    def __init__(self, delay, temperature):
+        super(TemperatureTimer, self).__init__()
+        self.delay = delay
+        self.temperature = temperature
 
+    def run(self):
+        sleep(self.delay)
+        self.temperature.activate()

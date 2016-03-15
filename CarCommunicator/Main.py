@@ -4,6 +4,7 @@ from json import JSONDecodeError
 from Car import CarControl
 from time import sleep
 
+DEBUG = True
 
 class Main:
 
@@ -18,27 +19,34 @@ class Main:
     def run(self):
         while True:
             self.poll()
+            if DEBUG: print("Sover")
             sleep(self.POLLING_INTERVAL)
 
     def poll(self):
         # TODO: Send fresh car information to the server
+        if DEBUG: print("poller")
         self.handle(self.send_data(self.get_error_message(), True))
 
     def handle(self, r):
+        print(r)
         messages = {message['type']: message['value'] for message in r}
 
         if 'AC_temperature' in messages:
+            if DEBUG: print("Setter temperatur")
             self.target_temp = messages['AC_temperature']
             if self.AC_controller is not None:
+                if DEBUG: print("oppdaterer temperatur")
                 # If AC-session is started, and user wants to update temperature
                 self.AC_controller.update_temperature(self.target_temp)
 
         if 'AC_enabled' in messages:
             if messages['AC_enabled']:
+                if DEBUG: print("Temperatur aktiv, endrer temp?")
                 # Activate AC by creating temperature object
                 self.AC_controller = Temperature(self.car_control, self.target_temp)
             else:
-                if self.car_control is not None:
+                if self.AC_controller is not None:
+                    if DEBUG: print("Deaktiverer")
                     # Deactivate AC by calling self.AC_controller.deactivate()
                     self.AC_controller.deactivate()
                     self.AC_controller = None
@@ -56,7 +64,11 @@ class Main:
             url += "/error/"
         else:
             url += "/status/"
+
+        if DEBUG: print("Sender")
         r = requests.post(url, json=data)
+        if DEBUG: print("Mottatt fra server")
+
         r.raise_for_status()
 
         try:
@@ -83,8 +95,10 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Runs the CarCommunicator, which receives data from the car and '
                                      'acts on data from CarAPI.')
+    parser.add_argument('-d', '--debug', help='Print debug messages', action="store_true")
     parser.add_argument('server_url', help="URL where carAPI can be reached.")
     parser.add_argument('server_port', default=34446, type=int, nargs="?", help="The port at which the carAPI can be reached.")
     args = parser.parse_args()
+    DEBUG = args.debug
     main = Main(args.server_url, args.server_port)
     main.run()

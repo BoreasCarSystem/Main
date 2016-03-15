@@ -1,5 +1,5 @@
-from DataGenerators import *
-from DataSimulators import *
+from CarDataStream.DataGenerators import *
+from CarDataStream.DataSimulators import *
 from requests import request, post, get
 from collections import defaultdict
 from threading import Timer, Thread
@@ -42,9 +42,9 @@ class DataStream():
     def send(self):
 
 
-        #r = post(url="http://localhost:34444", json=self.data_dict)
+        r = post(url="http://localhost:34444", json=(self.data_dict))
 
-        pretty_print_dict(self.data_dict)
+        #pretty_print_dict(self.data_dict)
 
 
         Timer(1.0, self.send).start()

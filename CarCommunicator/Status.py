@@ -1,6 +1,7 @@
 import http.server
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
+import json
 
 HOST = "localhost"
 PORT = 34444
@@ -57,8 +58,11 @@ class Handler(BaseHTTPRequestHandler):
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_GET(self):
-        print(self.status.get_battery_level())
-'''
+        self.send_response(200)
+    def do_POST(self):
+        self.send_response(200)
+        self.end_headers()
+        self.log_request()
+
 if __name__ == "__main__":
     s = Status()
-'''

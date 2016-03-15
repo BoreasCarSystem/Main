@@ -3,8 +3,8 @@ In the real world, this might be a set of circuits or something."""
 
 import json
 
-class CarControl():
 
+class CarControl:
     def __init__(self):
         self.AC_enabled = False
         self.AC_target_temperature = None

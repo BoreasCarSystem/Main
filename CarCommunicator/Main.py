@@ -1,10 +1,16 @@
 import requests
 from Temperature import Temperature
-from json import JSONDecodeError
+import json
 from Car import CarControl
 from time import sleep
+import Status
+from queue import Queue
+
+if not hasattr(json, "JSONDecodeError"):
+    json.JSONDecodeError = ValueError
 
 DEBUG = True
+
 
 class Main:
 
@@ -15,6 +21,10 @@ class Main:
         self.AC_controller = None
         self.car_control = CarControl()
         self.target_temp = 20
+        # Start server
+        self.status = Status.Status()
+        # error messages
+        self.error_messages = Queue()
 
     def run(self):
         while True:
@@ -22,10 +32,36 @@ class Main:
             if DEBUG: print("Sover")
             sleep(self.POLLING_INTERVAL)
 
+    def get_error_messages(self):
+        messages = list()
+        while not self.error_messages.empty():
+            messages.append(self.error_messages.get_nowait())
+        return messages
+
+    def add_error_message(self, errno, debug_info, send_immediately=False):
+        message = {"errno": errno, "message": debug_info}
+        if send_immediately:
+            self.handle(self.send_data(message, True))
+        else:
+            self.error_messages.put_nowait(message)
+
     def poll(self):
-        # TODO: Send fresh car information to the server
         if DEBUG: print("poller")
-        self.handle(self.send_data(self.get_error_message(), True))
+        data_for_server = self.status.get_data()
+        if data_for_server is None:
+            data_for_server = self.error_no_data()
+            error = True
+        else:
+            error = False
+
+        self.handle(self.send_data(data_for_server, error))
+
+        # Are there any errors to report?
+        messages = self.get_error_messages()
+        if len(messages) > 0:
+            # Report!
+            for message in messages:
+                self.handle(self.send_data(message, True))
 
     def handle(self, r):
         print(r)
@@ -73,7 +109,7 @@ class Main:
 
         try:
             return r.json()
-        except JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             # Could it not be decoded because there was nothing to decode?
             if len(r.content) == 0:
                 # Yup, that means no messages were sent from the server
@@ -82,13 +118,12 @@ class Main:
                 # Nope, malformed data from server..?
                 raise e
 
-    def get_error_message(self):
+    def error_no_data(self):
         """
-        Return JSON-compatible object, placeholder since we don't
-        have car data to send yet.
+        Return error message which says that there was no data since last time.
         :return:
         """
-        return {"errno": 3, "message": "Not implemented yet"}
+        return {"errno": 3, "message": "No data"}
 
 
 if __name__ == '__main__':

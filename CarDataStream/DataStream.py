@@ -58,5 +58,6 @@ def pretty_print_dict(dict):
 
 
 generator = MergeManyGenerator(generators=[JsonDataGenerator("Json", "downtown-west.json")])
-stream = DataStream(generator)
+battery_generator = MergeManyGenerator(generators=[Battery("Battery")])
+stream = DataStream(generator, battery_generator)
 stream.start()

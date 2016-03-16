@@ -2,11 +2,12 @@ import http.server
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import json
+from threading import Thread
 
 HOST = "localhost"
 PORT = 34444
 
-class Status:
+class Status(Thread):
     """ We need to create a connection between this class and the CarDataStream.
     This class SHOULD listen at port 34444, where CarDataStream MUST send its data.
 
@@ -15,12 +16,22 @@ class Status:
     """
 
     def __init__(self):
+        super(Status, self).__init__()
         self.all_listeners = set()
         self.battery_level = None
         self.temp = None
+        self.data = None
+        self.start()
 
+    def run(self):
         #Setts server to class, should listen for HTML requests
         self.server = Server(self)
+
+    def get_data(self):
+        return self.data
+
+    def set_data(self, data):
+        self.data = data
 
     def get_battery_level(self):
         """
@@ -57,12 +68,13 @@ class Handler(BaseHTTPRequestHandler):
         self.status = status
         BaseHTTPRequestHandler.__init__(self, *args)
 
-    def do_GET(self):
-        self.send_response(200)
     def do_POST(self):
+        data = json.loads(self.rfile.read(int(self.headers["Content-Length"])).decode())
         self.send_response(200)
         self.end_headers()
-        self.log_request()
+        self.status.set_data(data)
+
 
 if __name__ == "__main__":
     s = Status()
+    print("Jeg var her")

@@ -4,9 +4,10 @@ from threading import Thread
 from time import sleep
 
 
-class Temperature:
+class Temperature(Thread):
 
     def __init__(self, car_control, target_temp, time=None):
+        super(Temperature, self).__init__()
         self.car_control = car_control
         self.target_temp = float(target_temp)
         self.response = None

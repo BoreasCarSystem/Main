@@ -1,6 +1,9 @@
 import requests
 from Temperature import Temperature
-from json import JSONDecodeError
+try:
+    from json import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 from Car import CarControl
 from time import sleep
 
@@ -9,7 +12,7 @@ DEBUG = True
 class Main:
 
     def __init__(self, car_api, port):
-        self.POLLING_INTERVAL = 20
+        self.POLLING_INTERVAL = 5
         self.car_api = car_api
         self.port = port
         self.AC_controller = None

@@ -23,6 +23,7 @@ class Main:
         self.target_temp = 20
         # Start server
         self.status = Status.Status()
+
         # error messages
         self.error_messages = Queue()
 
@@ -48,18 +49,14 @@ class Main:
     def poll(self):
         if DEBUG: print("poller")
         data_for_server = self.status.get_data()
-        if data_for_server is None:
-            data_for_server = self.error_no_data()
-            error = True
+        # Send data if it exists
+        if data_for_server is not None:
+            self.handle(self.send_data(data_for_server, False))
         else:
-            error = False
-
-        self.handle(self.send_data(data_for_server, error))
-
-        # Are there any errors to report?
+            self.add_error_message(3, "No data")
+        # Send error messages
         messages = self.get_error_messages()
         if len(messages) > 0:
-            # Report!
             for message in messages:
                 self.handle(self.send_data(message, True))
 
@@ -117,13 +114,6 @@ class Main:
             else:
                 # Nope, malformed data from server..?
                 raise e
-
-    def error_no_data(self):
-        """
-        Return error message which says that there was no data since last time.
-        :return:
-        """
-        return {"errno": 3, "message": "No data"}
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 
-AC_NOT_START_LIMIT = 25
-AC_ABORT_LIMIT = 15
+
 
 
 class BatteryListener:

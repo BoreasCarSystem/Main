@@ -1,9 +1,6 @@
 import requests
 from Temperature import Temperature
-try:
-    from json import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
+import json
 from Car import CarControl
 from time import sleep
 import Status
@@ -79,7 +76,7 @@ class Main:
             if messages['AC_enabled']:
                 if DEBUG: print("Temperatur aktiv, endrer temp?")
                 # Activate AC by creating temperature object
-                self.AC_controller = Temperature(self.car_control, self, self.target_temp)
+                self.AC_controller = Temperature(self.car_control, self.target_temp, self, self.status)
             else:
                 if self.AC_controller is not None:
                     if DEBUG: print("Deaktiverer")

@@ -3,6 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import json
 from threading import Thread
+import traceback
 
 HOST = "localhost"
 PORT = 34444
@@ -17,7 +18,10 @@ class Status(Thread):
 
     def __init__(self):
         super(Status, self).__init__()
-        self.all_listeners = set()
+        # Dictionary containing lists with listeners, one list for each signal name
+        self.all_listeners = dict()
+        # Dictionary with the last data for the signal names we have listeners for (so we can detect changes)
+        self.listener_last_data = dict()
         self.battery_level = None
         self.temp = None
         self.data = None
@@ -43,14 +47,40 @@ class Status(Thread):
         return self.temp
 
     def notify_listeners(self):
-        for listener in self.all_listeners:
-            listener.update()
+        # Go through all data types with listeners registered
+        for data_type in self.all_listeners.keys():
 
-    def add_listener(self, listener):
-        self.all_listeners.add(listener)
+            # Fetch the newest data
+            data = self.data[data_type]
 
-    def remove_listener(self, listener):
-        self.all_listeners.remove(listener)
+            # Don't notify listeners if the value hasn't changed
+            if data == self.listener_last_data[data_type]:
+                continue
+
+            # Notify each listener, give them the new data
+            for listener in self.all_listeners[data_type]:
+                try:
+                    listener(data)
+                except Exception:
+                    traceback.print_exc()
+
+            # Keep track of the new data
+            self.listener_last_data[data_type] = data
+
+    def add_listener(self, listener, data_type):
+        # Assume a list for this data_type already exists
+        try:
+            self.all_listeners[data_type].append(listener)
+        except KeyError:
+            # Ops, it didn't
+            self.all_listeners[data_type] = [listener]
+            self.listener_last_data[data_type] = None
+
+    def remove_listener(self, listener, data_type):
+        try:
+            self.all_listeners[data_type].remove(listener)
+        except KeyError:
+            pass
 
 
 """Sets up server, must add handle methods in handler class to handle requests

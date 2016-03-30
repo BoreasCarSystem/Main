@@ -3,20 +3,25 @@ import json
 from threading import Thread
 from time import sleep
 
+AC_NOT_START_LIMIT = 25
+AC_ABORT_LIMIT = 15
 TIME_LIMIT = 15
 
 class Temperature(Thread):
 
-    def __init__(self, car_control, main, target_temp, time=None):
+    def __init__(self, car_control, target_temp, main, status, time=None):
         super(Temperature, self).__init__()
         self.main = main
         self.car_control = car_control
         self.target_temp = float(target_temp)
         self.response = None
         self.time = time
+        self.status = status
         self.start()
 
     def run(self):
+        # Register ourself as listener
+        self.status.add_listener(self.battery_level_changed, "battery_level")
         if self.time is None:
             self.activate()
 
@@ -49,9 +54,15 @@ class Temperature(Thread):
         self.response = self.car_control.set_AC(data)
         if err is not None:
             self.main.add_error_message(err, "")
+        # deregister
+        self.status.remove_listener(self.battery_level_changed, "battery_level")
 
     def update_temperature(self, target_temp):
         self.target_temp = target_temp
         self.activate()
+
+    def battery_level_changed(self, battery_level):
+        if battery_level < AC_ABORT_LIMIT:
+            self.deactivate(7)
 
 

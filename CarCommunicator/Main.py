@@ -18,6 +18,7 @@ class Main:
         self.AC_controller = None
         self.car_control = CarControl()
         self.target_temp = 20
+        self.target_time = None
 
     def run(self):
         while True:
@@ -28,7 +29,7 @@ class Main:
     def poll(self):
         # TODO: Send fresh car information to the server
         if DEBUG: print("poller")
-        self.handle(self.send_data(self.get_error_message(), True))
+        self.handle(self.send_data(self.get_error_message(), False))
 
     def handle(self, r):
         print(r)
@@ -42,17 +43,22 @@ class Main:
                 # If AC-session is started, and user wants to update temperature
                 self.AC_controller.update_temperature(self.target_temp)
 
+        if "AC_timer" in messages:
+                    if DEBUG: print("Setter tidspunkt")
+                    self.target_time = messages["AC_timer"]
+
         if 'AC_enabled' in messages:
             if messages['AC_enabled']:
                 if DEBUG: print("Temperatur aktiv, endrer temp?")
                 # Activate AC by creating temperature object
-                self.AC_controller = Temperature(self.car_control, self.target_temp)
+                self.AC_controller = Temperature(self.car_control, self.target_temp, self.target_time)
             else:
                 if self.AC_controller is not None:
                     if DEBUG: print("Deaktiverer")
                     # Deactivate AC by calling self.AC_controller.deactivate()
                     self.AC_controller.deactivate()
                     self.AC_controller = None
+
 
     def send_data(self, data, error=False):
         """

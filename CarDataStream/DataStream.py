@@ -1,5 +1,5 @@
-from CarDataStream.DataGenerators import *
-from CarDataStream.DataSimulators import *
+from DataGenerators import *
+from DataSimulators import *
 from requests import request, post, get
 from collections import defaultdict
 from threading import Timer, Thread

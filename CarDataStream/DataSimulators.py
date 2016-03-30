@@ -1,4 +1,4 @@
-from CarDataStream.DataGenerators import *
+from DataGenerators import *
 from time import sleep,time
 import json
 

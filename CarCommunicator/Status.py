@@ -37,7 +37,7 @@ class Status(Thread):
         """
         We're assuming battery levels are in percents.
         """
-        return self.battery_level
+        return self.data["battery_level"]
 
     def get_temperature(self):
         return self.temp

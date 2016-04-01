@@ -6,6 +6,7 @@ from time import sleep
 import Status
 from queue import Queue
 
+# Backwards-compatible for python < 3.5
 if not hasattr(json, "JSONDecodeError"):
     json.JSONDecodeError = ValueError
 
@@ -47,7 +48,7 @@ class Main:
 
     def _poll(self):
         if DEBUG: print("poller")
-        data_for_server = self.status.get_data()
+        data_for_server = self._get_data_for_server()
         # Send data if it exists
         if data_for_server is not None:
             self._handle(self._send_data(data_for_server, False))
@@ -85,6 +86,15 @@ class Main:
                     if DEBUG: print("Deaktiverer")
                     # Deactivate AC by calling self.AC_controller.deactivate()
                     self.AC_controller.deactivate()
+
+    def _get_data_for_server(self):
+        # Make a copy of the status data
+        data = dict(self.status.get_data())
+        # Add AC control stuff
+        data['AC_enabled'] = self.AC_controller is not None
+        data['AC_temperature'] = self.target_temp
+        data['AC_time'] = self.target_time
+        return data
 
     def _send_data(self, data, error=False):
         """

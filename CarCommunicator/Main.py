@@ -23,7 +23,7 @@ class Main:
         self.target_temp = 20
         self.target_time = None
 
-	# Start server
+        # Start server
         self.status = Status.Status()
 
         # error messages
@@ -31,38 +31,35 @@ class Main:
 
     def run(self):
         while True:
-            self.poll()
+            self._poll()
             if DEBUG: print("Sover")
             sleep(self.POLLING_INTERVAL)
 
-    def get_error_messages(self):
+    def _get_error_messages(self):
         messages = list()
         while not self.error_messages.empty():
             messages.append(self.error_messages.get_nowait())
         return messages
 
-    def add_error_message(self, errno, debug_info, send_immediately=False):
+    def add_error_message(self, errno, debug_info):
         message = {"errno": errno, "message": debug_info}
-        if send_immediately:
-            self.handle(self.send_data(message, True))
-        else:
-            self.error_messages.put_nowait(message)
+        self.error_messages.put(message)
 
-    def poll(self):
+    def _poll(self):
         if DEBUG: print("poller")
         data_for_server = self.status.get_data()
         # Send data if it exists
         if data_for_server is not None:
-            self.handle(self.send_data(data_for_server, False))
+            self._handle(self._send_data(data_for_server, False))
         else:
             self.add_error_message(3, "No data")
         # Send error messages
-        messages = self.get_error_messages()
+        messages = self._get_error_messages()
         if len(messages) > 0:
             for message in messages:
-                self.handle(self.send_data(message, True))
+                self._handle(self._send_data(message, True))
 
-    def handle(self, r):
+    def _handle(self, r):
         print(r)
         messages = {message['type']: message['value'] for message in r}
 
@@ -88,10 +85,8 @@ class Main:
                     if DEBUG: print("Deaktiverer")
                     # Deactivate AC by calling self.AC_controller.deactivate()
                     self.AC_controller.deactivate()
-                    self.AC_controller = None
 
-
-    def send_data(self, data, error=False):
+    def _send_data(self, data, error=False):
         """
         Polls the CarAPI server for messages.
 

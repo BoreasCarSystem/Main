@@ -1,11 +1,16 @@
 import Car
 import json
-from threading import Thread
+from threading import Thread, Lock
 from time import sleep
+import datetime
 
 AC_NOT_START_LIMIT = 25
 AC_ABORT_LIMIT = 15
+# Number of minutes the AC can be turned on
 TIME_LIMIT = 15
+# Now as a timedelta
+TIME_LIMIT_D = datetime.timedelta(minutes=TIME_LIMIT)
+
 
 class Temperature(Thread):
 
@@ -18,16 +23,29 @@ class Temperature(Thread):
         self.time = time
         self.status = status
         self.start()
+        self.deactivated = False
+        self.deactivate_lock = Lock
 
     def run(self):
-        # Register ourself as listener
-        self.status.add_listener(self.battery_level_changed, "battery_level")
         if self.time is None:
             self.activate()
 
         else:
-            # TODO: Make sure time is converted to seconds at some point, and that it is TIME_LIMIT before set time.
-            sleep(self.time)
+            # Parse time data
+            activate_datetime = datetime.datetime.strptime(self.time, "%H:%M")
+            now_datetime = datetime.datetime.now()
+            # Set the activate datetime to be the next day if the time is set in the past
+            if activate_datetime < now_datetime:
+                activate_datetime += datetime.timedelta(days=1)
+            # Find out how long we should wait before activating
+            difference = activate_datetime - (now_datetime + TIME_LIMIT_D)
+            # Activate immediately if we have less time available than required to warm up car
+            if difference.total_seconds() < TIME_LIMIT_D.total_seconds():
+                pass
+            else:
+                # Wait
+                sleep(difference.total_seconds())
+            # Activate
             self.activate()
 
     def activate(self):
@@ -38,6 +56,7 @@ class Temperature(Thread):
         di = {"enabled": True, "temperature": self.target_temp}
         data = json.dumps(di)
         self.response = self.car_control.set_AC(data)
+        self.status.add_listener(self.battery_level_changed, "battery_level")
         sleep(TIME_LIMIT)
         self.deactivate()
 
@@ -49,13 +68,19 @@ class Temperature(Thread):
         # An ok-message should be sent from main to web server if main is the source (then it is likely that the user
         # has canceled the AC). This can be sent via the CarControl-class.
 
-        di = {"enabled": False, "temperature": None}
-        data = json.dumps(di)
-        self.response = self.car_control.set_AC(data)
-        if err is not None:
-            self.main.add_error_message(err, "")
-        # deregister
-        self.status.remove_listener(self.battery_level_changed, "battery_level")
+        with self.deactivate_lock:
+            if not self.deactivated:
+                self.deactivated = True
+                di = {"enabled": False, "temperature": None}
+                data = json.dumps(di)
+                self.response = self.car_control.set_AC(data)
+                # deregister
+                self.status.remove_listener(self.battery_level_changed, "battery_level")
+                # don't remember us
+                self.main.AC_controller = None
+                # send any error messages
+                if err is not None:
+                    self.main.add_error_message(err, "")
 
     def update_temperature(self, target_temp):
         self.target_temp = target_temp

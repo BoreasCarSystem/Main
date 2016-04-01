@@ -35,7 +35,7 @@ class Temperature(Thread):
             activate_datetime = datetime.datetime.strptime(self.time, "%H:%M")
             now_datetime = datetime.datetime.now()
             # Set the activate datetime to be the next day if the time is set in the past
-            if activate_datetime < now_datetime:
+            if activate_datetime.timestamp() < now_datetime.timestamp():
                 activate_datetime += datetime.timedelta(days=1)
             # Find out how long we should wait before activating
             difference = activate_datetime - (now_datetime + TIME_LIMIT_D)
@@ -45,18 +45,20 @@ class Temperature(Thread):
             else:
                 # Wait
                 sleep(difference.total_seconds())
-            # Activate
             self.activate()
 
     def activate(self):
         # Tells CarControl to activate the AC to the given target_temp.
         # Format to be sent:
         # { "enable": true, "temperature": target_temp }
-
-        di = {"enabled": True, "temperature": self.target_temp}
-        data = json.dumps(di)
-        self.response = self.car_control.set_AC(data)
-        self.status.add_listener(self.battery_level_changed, "battery_level")
+        with self.deactivate_lock:
+            if not self.deactivated:
+                di = {"enabled": True, "temperature": self.target_temp}
+                data = json.dumps(di)
+                self.response = self.car_control.set_AC(data)
+                self.status.add_listener(self.battery_level_changed, "battery_level")
+            else:
+                return
         sleep(TIME_LIMIT)
         self.deactivate()
 

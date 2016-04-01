@@ -84,7 +84,7 @@ class Main:
             else:
                 if self.AC_controller is not None:
                     if DEBUG: print("Deaktiverer")
-                    # Deactivate AC by calling self.AC_controller.deactivate()
+                    # Deactivate AC
                     self.AC_controller.deactivate()
 
     def _get_data_for_server(self):

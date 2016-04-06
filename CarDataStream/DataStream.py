@@ -44,7 +44,7 @@ class DataStream():
 
         r = post(url="http://localhost:34444", json=(self.data_dict))
 
-        #pretty_print_dict(self.data_dict)
+        pretty_print_dict(self.data_dict)
 
 
         Timer(1.0, self.send).start()
@@ -57,6 +57,6 @@ def pretty_print_dict(dict):
 
 
 
-generator = MergeManyGenerator(generators=[JsonDataGenerator("Json", "downtown-west.json"), Battery("Battery")])
+generator = MergeManyGenerator(generators=[JsonDataGenerator("Json", "downtown-west.json"), Battery("Battery"), WasherFluid("WasherFluid"), Temperature("Temperature", current=16)])
 stream = DataStream(generator)
 stream.start()

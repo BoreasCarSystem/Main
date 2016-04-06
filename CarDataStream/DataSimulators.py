@@ -1,6 +1,70 @@
 from DataGenerators import *
 from time import sleep,time
 import json
+from threading import Timer
+
+
+
+class WasherFluid(ThreadedDataGenerator):
+
+    def __init__(self, name, level=100.0, interval=20.0):
+        super(WasherFluid, self).__init__(name)
+        self.level = level
+        self.interval=interval
+        self.max_level = 100.0
+
+    def generate(self):
+        while True:
+
+            value = self.level - 2.0
+            if value <= 100 and value >= 0:
+                self.level = value
+            else:
+                if value < 0:
+                    self.level = 0.0
+                else:
+                    self.level = 100.0
+
+            item = {"name":"washerfluid_level", "value":self.level, "timestamp":time()}
+            self.send(self.name,item)
+            print(self.level)
+            sleep(self.interval)
+
+
+class Temperature(ThreadedDataGenerator):
+
+    def __init__(self, name, outside=15.0, current=15.0, target=0, ac_on=False):
+        super(Temperature, self).__init__(name)
+        self.outside = outside
+        self.current = current
+        self.target = target
+        self.ac_on = ac_on
+
+    def generate(self):
+
+        while True:
+            if self.ac_on:
+                if abs(self.target - self.current) < 0.2:
+                    self.current = self.target
+                elif self.target > self.current:
+                    self.current += 0.2
+                elif self.target < self.current:
+                    self.current -= 0.2
+            else:
+                if abs(self.outside - self.current) < 0.1:
+                    self.current = self.outside
+                elif self.outside > self.current:
+                    self.current += 0.1
+                elif self.outside < self.current:
+                    self.current -= 0.1
+            self.current = round(self.current, 1)
+            item = {"name":"temperature", "value":self.current, "timestamp":time()}
+            self.send(self.name, item)
+            sleep(1)
+
+
+
+
 
 class Battery(ThreadedDataGenerator):
 
@@ -21,7 +85,7 @@ class Battery(ThreadedDataGenerator):
                 self.level = value
             else:
                 if value < 1:
-                    self.alue = 0
+                    self.level = 0
                 else:
                     self.level = 100.0
             item = {"name":"battery_level", "value":self.level, "timestamp":time()}
@@ -29,9 +93,6 @@ class Battery(ThreadedDataGenerator):
             sleep(0.1)
             if self.should_stop:
                 return
-
-
-
 
 
 class JsonDataGenerator(ThreadedDataGenerator):
@@ -68,4 +129,5 @@ class JsonDataGenerator(ThreadedDataGenerator):
                 json_list.append(json_line)
 
             return json_list
+
 

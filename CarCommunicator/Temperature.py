@@ -24,7 +24,7 @@ class Temperature(Thread):
         self.status = status
         self.start()
         self.deactivated = False
-        self.deactivate_lock = Lock
+        self.deactivate_lock = Lock()
 
     def run(self):
         if self.time is None:

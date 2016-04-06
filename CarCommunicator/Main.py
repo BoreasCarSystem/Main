@@ -89,12 +89,15 @@ class Main:
 
     def _get_data_for_server(self):
         # Make a copy of the status data
-        data = dict(self.status.get_data())
-        # Add AC control stuff
-        data['AC_enabled'] = self.AC_controller is not None
-        data['AC_temperature'] = self.target_temp
-        data['AC_time'] = self.target_time
-        return data
+        try:
+            data = dict(self.status.get_data())
+            # Add AC control stuff
+            data['AC_enabled'] = self.AC_controller is not None
+            data['AC_temperature'] = self.target_temp
+            data['AC_time'] = self.target_time
+            return data
+        except TypeError:
+            return None
 
     def _send_data(self, data, error=False):
         """

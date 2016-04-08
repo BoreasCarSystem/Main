@@ -32,7 +32,9 @@ class Temperature(Thread):
 
         else:
             # Parse time data
-            activate_datetime = datetime.datetime.strptime(self.time, "%H:%M")
+            activate_time = datetime.datetime.strptime(self.time, "%H:%M").time()
+            today = datetime.date.today()
+            activate_datetime = datetime.datetime.combine(today, activate_time)
             now_datetime = datetime.datetime.now()
             # Set the activate datetime to be the next day if the time is set in the past
             if activate_datetime.timestamp() < now_datetime.timestamp():
@@ -40,7 +42,7 @@ class Temperature(Thread):
             # Find out how long we should wait before activating
             difference = activate_datetime - (now_datetime + TIME_LIMIT_D)
             # Activate immediately if we have less time available than required to warm up car
-            if difference.total_seconds() < TIME_LIMIT_D.total_seconds():
+            if difference.total_seconds() < 0:
                 pass
             else:
                 # Wait
@@ -59,7 +61,7 @@ class Temperature(Thread):
                 self.status.add_listener(self.battery_level_changed, "battery_level")
             else:
                 return
-        sleep(TIME_LIMIT)
+        sleep(datetime.timedelta(minutes=TIME_LIMIT).total_seconds())
         self.deactivate()
 
     def deactivate(self, err=None):

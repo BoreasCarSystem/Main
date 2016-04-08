@@ -1,10 +1,12 @@
 import requests
+import requests.exceptions
 from Temperature import Temperature
 import json
 from Car import CarControl
 from time import sleep
 import Status
 from queue import Queue
+import traceback
 
 # Backwards-compatible for python < 3.5
 if not hasattr(json, "JSONDecodeError"):
@@ -47,18 +49,22 @@ class Main:
         self.error_messages.put(message)
 
     def _poll(self):
-        if DEBUG: print("poller")
-        data_for_server = self._get_data_for_server()
-        # Send data if it exists
-        if data_for_server is not None:
-            self._handle(self._send_data(data_for_server, False))
-        else:
-            self.add_error_message(3, "No data")
-        # Send error messages
-        messages = self._get_error_messages()
-        if len(messages) > 0:
-            for message in messages:
-                self._handle(self._send_data(message, True))
+        try:
+            if DEBUG: print("poller")
+            data_for_server = self._get_data_for_server()
+            # Send data if it exists
+            if data_for_server is not None:
+                self._handle(self._send_data(data_for_server, False))
+            else:
+                self.add_error_message(3, "No data")
+            # Send error messages
+            messages = self._get_error_messages()
+            if len(messages) > 0:
+                for message in messages:
+                    self._handle(self._send_data(message, True))
+        except requests.exceptions.RequestException:
+            traceback.print_exc()
+            return []
 
     def _handle(self, r):
         print(r)
@@ -73,12 +79,15 @@ class Main:
                 self.AC_controller.update_temperature(self.target_temp)
 
         if "AC_timer" in messages:
-                    if DEBUG: print("Setter tidspunkt")
-                    self.target_time = messages["AC_timer"]
+            if self.AC_controller is not None:
+                self.AC_controller.deactivate()
+                messages["AC_enabled"] = True
+            if DEBUG: print("Setter tidspunkt")
+            self.target_time = messages["AC_timer"]
 
         if 'AC_enabled' in messages:
             if messages['AC_enabled']:
-                if DEBUG: print("Temperatur aktiv, endrer temp?")
+                if DEBUG: print("Setter på AC (evt. timer)")
                 # Activate AC by creating temperature object
                 self.AC_controller = Temperature(self.car_control, self.target_temp, self, self.status, self.target_time)
             else:

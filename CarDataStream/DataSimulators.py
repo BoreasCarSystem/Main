@@ -27,7 +27,6 @@ class WasherFluid(ThreadedDataGenerator):
 
             item = {"name":"washerfluid_level", "value":self.level, "timestamp":time()}
             self.send(self.name,item)
-            print(self.level)
             sleep(self.interval)
 
 

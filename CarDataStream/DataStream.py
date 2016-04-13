@@ -11,14 +11,6 @@ VERBOSE = False
 DEBUG = False
 
 
-temperature_simulator = None
-battery_simulator = None
-datafile_simulator = None
-washerfluid_simulator = None
-
-
-
-
 class DataStream:
 
     def __init__(self, merged_generator):

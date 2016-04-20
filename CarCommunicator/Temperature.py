@@ -1,58 +1,63 @@
-import Car
 import json
-from threading import Thread, Lock
+from threading import Thread, Lock, Timer
 from time import sleep
-import datetime
+from time import strftime, strptime, time, mktime
 
 AC_NOT_START_LIMIT = 25
 AC_ABORT_LIMIT = 15
 # Number of minutes the AC can be turned on
-TIME_LIMIT = 15
-# Now as a timedelta
-TIME_LIMIT_D = datetime.timedelta(minutes=TIME_LIMIT)
+TIME_LIMIT = 1
 
 
 class Temperature(Thread):
 
     def __init__(self, car_control, target_temp, main, status, time=None):
-        super(Temperature, self).__init__()
+        super(Temperature, self).__init__(daemon=True)
         self.main = main
         self.car_control = car_control
         self.target_temp = float(target_temp)
         self.response = None
         self.time = time
         self.status = status
-        self.start()
         self.deactivated = False
         self.deactivate_lock = Lock()
+        self.timer = None
+        self.start()
 
     def run(self):
+
+
         if self.time is None:
+            print("HEIIOOIIII")
             self.activate()
 
         else:
             # Parse time data
-            activate_time = datetime.datetime.strptime(self.time, "%H:%M").time()
-            today = datetime.date.today()
-            activate_datetime = datetime.datetime.combine(today, activate_time)
-            now_datetime = datetime.datetime.now()
-            # Set the activate datetime to be the next day if the time is set in the past
-            if activate_datetime.timestamp() < now_datetime.timestamp():
-                activate_datetime += datetime.timedelta(days=1)
-            # Find out how long we should wait before activating
-            difference = activate_datetime - (now_datetime + TIME_LIMIT_D)
-            # Activate immediately if we have less time available than required to warm up car
-            if difference.total_seconds() < 0:
-                pass
+            print(self.time)
+            self.time = self.time + strftime("%Y-%m-%d")
+            activate_time = strptime(self.time, "%H:%M%Y-%m-%d")
+
+            print(activate_time)
+
+            timedelta = mktime(activate_time) - time()
+
+
+            if 0 <= timedelta < TIME_LIMIT*60:
+                print("Temperature: Activated AC")
+                self.activate()
             else:
-                # Wait
-                sleep(difference.total_seconds())
-            self.activate()
+                if timedelta < 0:
+                    timedelta += 24 * 60 * 60
+                print("Temperature: Set timer for ", timedelta, " seconds")
+                Timer(timedelta, self.activate).start()
 
     def activate(self):
+        print("AC: Activates")
+
         # Tells CarControl to activate the AC to the given target_temp.
         # Format to be sent:
         # { "enable": true, "temperature": target_temp }
+
         with self.deactivate_lock:
             if not self.deactivated:
                 di = {"enabled": True, "temperature": self.target_temp}
@@ -61,8 +66,10 @@ class Temperature(Thread):
                 self.status.add_listener(self.battery_level_changed, "battery_level")
             else:
                 return
-        sleep(datetime.timedelta(minutes=TIME_LIMIT).total_seconds())
-        self.deactivate()
+        print("AC: før timer")
+        self.timer = Timer(TIME_LIMIT*60, self.deactivate)
+        self.timer.start()
+        print("AC: etter timer")
 
     def deactivate(self, err=None):
         # Tells CarControl to deactivate AC
@@ -71,6 +78,8 @@ class Temperature(Thread):
         # deactivate.
         # An ok-message should be sent from main to web server if main is the source (then it is likely that the user
         # has canceled the AC). This can be sent via the CarControl-class.
+        if self.timer is not None:
+            self.timer.cancel()
 
         with self.deactivate_lock:
             if not self.deactivated:

@@ -55,7 +55,7 @@ class ThreadedDataGenerator(DataGenerator):
         if (self.thread and not self.thread.is_alive()) or not self.thread:
             self.should_stop = False
             self.is_started = True
-            self.thread = Thread(target=self.generate)
+            self.thread = Thread(target=self.generate, daemon=True)
             self.thread.start()
         return self
 

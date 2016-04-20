@@ -22,10 +22,10 @@ class Temperature(Thread):
         self.deactivated = False
         self.deactivate_lock = Lock()
         self.timer = None
+
         self.start()
 
     def run(self):
-
 
         if self.time is None:
             self.activate()
@@ -96,10 +96,11 @@ class Temperature(Thread):
 
     def update_temperature(self, target_temp):
         self.target_temp = target_temp
-        self.activate()
+        if not self.deactivated:
+            di = {"temperature": self.target_temp}
+            data = json.dumps(di)
+            self.car_control.set_AC(data)
 
     def battery_level_changed(self, battery_level):
         if battery_level < AC_ABORT_LIMIT:
             self.deactivate(7)
-
-

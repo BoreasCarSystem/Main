@@ -86,7 +86,7 @@ class Main:
             if DEBUG: print("Setter tidspunkt")
             self.target_time = messages["AC_timer"]
 
-        if 'AC_enabled' in messages:
+        if 'AC_enabled' in messages and (self.AC_controller is not None) != (messages['AC_enabled']):
             if messages['AC_enabled']:
                 if DEBUG: print("Setter på AC (evt. timer)")
                 # Activate AC by creating temperature object

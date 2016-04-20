@@ -39,6 +39,7 @@ class Status(Thread):
 
     def set_data(self, data):
         self.data = data
+        self.notify_listeners()
 
     def get_battery_level(self):
         """

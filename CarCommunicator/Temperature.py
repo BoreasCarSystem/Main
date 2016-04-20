@@ -6,7 +6,7 @@ from time import strftime, strptime, time, mktime
 AC_NOT_START_LIMIT = 25
 AC_ABORT_LIMIT = 15
 # Number of minutes the AC can be turned on
-TIME_LIMIT = 1
+TIME_LIMIT = 15
 
 
 class Temperature(Thread):
@@ -47,6 +47,7 @@ class Temperature(Thread):
             else:
                 if timedelta < 0:
                     timedelta += 24 * 60 * 60
+                timedelta -= TIME_LIMIT*60
                 print("Temperature: Set timer for ", timedelta, " seconds")
                 Timer(timedelta, self.activate).start()
 

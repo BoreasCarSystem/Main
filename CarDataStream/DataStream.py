@@ -10,6 +10,7 @@ import urllib
 VERBOSE = False
 DEBUG = False
 
+temperature_simulator = None
 
 class DataStream:
 
@@ -36,8 +37,15 @@ class DataStream:
 
         try:
             r = post(url="http://localhost:34444", json=(self.data_dict))
-        except Exception:
+            response = json.loads(r.content.decode("utf-8"))
+            print(response, temperature_simulator.target, temperature_simulator.current)
+            ac_enabled = response["AC_enabled"]
+            ac_target = response["AC_target_temperature"]
+            temperature_simulator.ac_on = ac_enabled
+            temperature_simulator.target = ac_target
+        except Exception as e:
             if DEBUG:
+                print(e)
                 print("Failed to send data to Main")
         if VERBOSE:
             pretty_print_dict(self.data_dict)

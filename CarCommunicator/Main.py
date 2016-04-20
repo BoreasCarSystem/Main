@@ -35,6 +35,7 @@ class Main:
     def run(self):
         while True:
             self._poll()
+            self._set_ac_status_in_status()
             if DEBUG: print("Sover")
             sleep(self.POLLING_INTERVAL)
 
@@ -100,6 +101,7 @@ class Main:
         # Make a copy of the status data
         try:
             data = dict(self.status.get_data())
+
             # Add AC control stuff
             data['AC_enabled'] = self.AC_controller is not None
             data['AC_temperature'] = self.target_temp
@@ -107,6 +109,10 @@ class Main:
             return data
         except TypeError:
             return None
+
+    def _set_ac_status_in_status(self):
+        self.status.AC_enabled = self.car_control.AC_enabled
+        self.status.AC_target_temperature = self.car_control.AC_target_temperature
 
     def _send_data(self, data, error=False):
         """
@@ -138,7 +144,6 @@ class Main:
             else:
                 # Nope, malformed data from server..?
                 raise e
-
 
 if __name__ == '__main__':
     import argparse

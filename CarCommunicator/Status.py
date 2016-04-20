@@ -20,11 +20,14 @@ class Status(Thread):
         super(Status, self).__init__()
         # Dictionary containing lists with listeners, one list for each signal name
         self.all_listeners = dict()
+        self.daemon = True
         # Dictionary with the last data for the signal names we have listeners for (so we can detect changes)
         self.listener_last_data = dict()
         self.battery_level = None
         self.temp = None
         self.data = None
+        self.AC_enabled = False
+        self.AC_target_temperature = 0.0
         self.start()
 
     def run(self):
@@ -88,8 +91,8 @@ class Status(Thread):
 class Server:
     def __init__(self, status):
         def handler(*args):
-            Handler(status,*args)
-        httpd = HTTPServer((HOST,PORT), handler)
+            Handler(status, *args)
+        httpd = HTTPServer((HOST, PORT), handler)
         httpd.serve_forever()
 
 #Request Handler
@@ -100,9 +103,18 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         data = json.loads(self.rfile.read(int(self.headers["Content-Length"])).decode())
+        message = json.dumps(self._create_response())
         self.send_response(200)
+        self.send_header("Content-Type", "application/json")
         self.end_headers()
+        self.wfile.write(bytes(message, "utf-8"))
+
         self.status.set_data(data)
+
+    def _create_response(self):
+        di = {"AC_enabled": self.status.AC_enabled,
+              "AC_target_temperature": self.status.AC_target_temperature}
+        return di
 
 
 if __name__ == "__main__":

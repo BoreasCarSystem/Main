@@ -28,7 +28,6 @@ class Temperature(Thread):
 
 
         if self.time is None:
-            print("HEIIOOIIII")
             self.activate()
 
         else:

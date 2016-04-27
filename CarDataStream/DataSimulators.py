@@ -103,21 +103,24 @@ class JsonDataGenerator(ThreadedDataGenerator):
         self.sent_items_last_timestamp = dict()
 
     def generate(self):
+
         now = time()
         diff = now - self.data_list[0]["timestamp"]
 
         adjusted_time = time() - diff
 
-        for item in self.data_list:
 
-            while item["timestamp"] > adjusted_time:
-                adjusted_time = time() - diff
-            item["timestamp"] = time()
-            self.send(self.name, item)
-            if self.should_stop:
-                return
-        print("All data consumed!")
-        return
+        with open(self.filename) as data:
+            for line in data:
+                item = json.loads(line)
+                while item["timestamp"] > adjusted_time:
+                    adjusted_time = time() - diff
+                item["timestamp"] = time()
+                self.send(self.name, item)
+                if self.should_stop:
+                    return
+            self.generate()
+
 
     def read_json_from_file(self, filename):
         with open(filename) as data:
@@ -128,5 +131,3 @@ class JsonDataGenerator(ThreadedDataGenerator):
                 json_list.append(json_line)
 
             return json_list
-
-
